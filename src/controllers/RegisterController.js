@@ -33,7 +33,7 @@ class RegisterController {
     return response.json({ user: user.name, company: company.name });
   }
 
-  async index(request, response) {
+  async show(request, response) {
     const { name, email, phone, birthday, hometown, company } = request.query;
   
     let usersQuery = knex("users");
@@ -96,7 +96,7 @@ class RegisterController {
     return response.json(data);
   }
   
-  async show(request, response) {
+  async index(request, response) {
     const { userName, companyName } = request.query;
   
     let query = knex("register")

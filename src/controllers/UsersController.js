@@ -69,7 +69,7 @@ class UsersController {
     return response.json({ message: "User updated successfully." });
   }
 
-  async show(request, response) {
+  async index(request, response) {
     const { name, email, phone, birthday, hometown } = request.query;
 
     let users;
@@ -100,7 +100,6 @@ class UsersController {
 
     return response.json(users);
   }
-
 
   async delete(request, response) {
     const { id } = request.params;

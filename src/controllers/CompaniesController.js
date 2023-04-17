@@ -60,7 +60,7 @@ class CompaniesController {
     return response.json(updatedCompany);
   }
 
-  async show(request, response) {
+  async index(request, response) {
     const { name, address, cnpj } = request.query;
 
     let companies;

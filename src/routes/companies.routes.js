@@ -8,7 +8,7 @@ const companiesController = new CompaniesController();
 
 companiesRoutes.post("/", companiesController.create);
 companiesRoutes.put("/:id", companiesController.update);
-companiesRoutes.get("/", companiesController.show);
+companiesRoutes.get("/", companiesController.index);
 companiesRoutes.delete("/:id", companiesController.delete);
 
 module.exports = companiesRoutes;

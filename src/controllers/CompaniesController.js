@@ -72,13 +72,27 @@ class CompaniesController {
   }
 
   async show(request, response) {
-    try {
-      const companies = await knex('companies').select('*');
-      return response.json(companies);
-    } catch (error) {
-      console.error(error);
-      return response.status(500).json({ error: 'Unexpected error.' });
+    const { name, address, cnpj } = request.query;
+
+    let companies;
+
+    if (name) {
+      companies = await knex('companies')
+        .where('name', 'like', `%${name}%`)
+        .select('*');
+    } else if (address) {
+      companies = await knex('companies')
+        .where('address', 'like', `%${address}%`)
+        .select('*');
+    } else if (cnpj) {
+      companies = await knex('companies')
+        .where('cnpj', 'like', `%${cnpj}%`)
+        .select('*');
+    } else {
+      companies = await knex("companies").select("*");
     }
+
+    return response.json(companies);
   }
 
   async delete(request, response) {

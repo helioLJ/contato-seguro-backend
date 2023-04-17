@@ -82,14 +82,37 @@ class UsersController {
   }
 
   async show(request, response) {
-    try {
-      const users = await knex.select("*").from("users");
-      return response.json(users);
-    } catch (error) {
-      console.error(error);
-      return response.status(500).json({ error: "Error listing users" });
+    const { name, email, phone, birthday, hometown } = request.query;
+
+    let users;
+
+    if (name) {
+      users = await knex('users')
+        .where('name', 'like', `%${name}%`)
+        .select('*');
+    } else if (email) {
+      users = await knex('users')
+        .where('email', 'like', `%${email}%`)
+        .select('*');
+    } else if (phone) {
+      users = await knex('users')
+        .where('phone', 'like', `%${phone}%`)
+        .select('*');
+    } else if (birthday) {
+      users = await knex('users')
+        .where('birthday', 'like', `%${birthday}%`)
+        .select('*');
+    } else if (hometown) {
+      users = await knex('users')
+        .where('hometown', 'like', `%${hometown}%`)
+        .select('*');
+    } else {
+      users = await knex("users").select("*");
     }
+
+    return response.json(users);
   }
+
 
   async delete(request, response) {
     const { id } = request.params;

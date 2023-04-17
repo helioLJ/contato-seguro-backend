@@ -69,18 +69,6 @@ class UsersController {
     return response.json({ message: "User updated successfully." });
   }
 
-  async index(request, response) {
-    const { id } = request.params;
-
-    const user = await knex("users").select("*").where("id", id).first();
-
-    if (!user) {
-      return response.status(404).json({ error: "User not found" });
-    }
-
-    return response.json(user);
-  }
-
   async show(request, response) {
     const { name, email, phone, birthday, hometown } = request.query;
 

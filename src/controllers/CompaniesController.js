@@ -60,17 +60,6 @@ class CompaniesController {
     return response.json(updatedCompany);
   }
 
-  async index(request, response) {
-    const { id } = request.params;
-    const company = await knex("companies").where({ id }).first();
-
-    if (!company) {
-      return response.status(404).json({ error: "Company not found" });
-    }
-
-    return response.json(company);
-  }
-
   async show(request, response) {
     const { name, address, cnpj } = request.query;
 

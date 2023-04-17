@@ -34,7 +34,44 @@ class RegisterController {
   }
 
   async index(request, response) {
-    const users = await knex("users").select("*");
+    const { name, email, phone, birthday, hometown, company } = request.query;
+  
+    let usersQuery = knex("users");
+  
+    // Aplica filtro para name
+    if (name) {
+      usersQuery = usersQuery.where("name", "like", `%${name}%`);
+    }
+  
+    // Aplica filtro para email
+    if (email) {
+      usersQuery = usersQuery.where("email", "like", `%${email}%`);
+    }
+  
+    // Aplica filtro para phone
+    if (phone) {
+      usersQuery = usersQuery.where("phone", "like", `%${phone}%`);
+    }
+  
+    // Aplica filtro para birthday
+    if (birthday) {
+      usersQuery = usersQuery.where("birthday", "like", `%${birthday}%`);
+    }
+  
+    // Aplica filtro para hometown
+    if (hometown) {
+      usersQuery = usersQuery.where("hometown", "like", `%${hometown}%`);
+    }
+  
+    // Aplica filtro para company
+    if (company) {
+      usersQuery = usersQuery.whereRaw(
+        "EXISTS (SELECT 1 FROM register r JOIN companies c ON r.company_id = c.id WHERE r.user_id = users.id AND c.name LIKE ?)",
+        [`%${company}%`]
+      );
+    }
+  
+    const users = await usersQuery.select("*");
   
     const data = await Promise.all(
       users.map(async (user) => {
@@ -56,30 +93,44 @@ class RegisterController {
       })
     );
   
-  
     return response.json(data);
   }
-
+  
   async show(request, response) {
-    const { id } = request.params;
-
-    // Busca o usuário
-    const user = await knex("users").where("id", id).first();
-    if (!user) {
-      return response.status(404).json({ error: "User not found" });
+    const { userName, companyName } = request.query;
+  
+    let query = knex("register")
+      .select("register.id", "users.id as user_id", "users.name as user_name", "companies.id as company_id", "companies.name as company_name")
+      .join("users", "users.id", "=", "register.user_id")
+      .join("companies", "companies.id", "=", "register.company_id");
+  
+    // Aplica filtro para userName
+    if (userName) {
+      query = query.where("users.name", "like", `%${userName}%`);
     }
-
-    // Busca as empresas vinculadas ao usuário
-    const companies = await knex("companies")
-      .join("register", "register.company_id", "companies.id")
-      .where("register.user_id", id)
-      .select("companies.*");
-
-    // Retorna o objeto com o nome do usuário e as companies
-    return response.json({
-      user: user.name,
-      companies: companies.map(company => company.name),
+  
+    // Aplica filtro para companyName
+    if (companyName) {
+      query = query.where("companies.name", "like", `%${companyName}%`);
+    }
+  
+    const registers = await query;
+  
+    const data = registers.map((register) => {
+      return {
+        id: register.id,
+        user: {
+          id: register.user_id,
+          name: register.user_name,
+        },
+        company: {
+          id: register.company_id,
+          name: register.company_name,
+        },
+      };
     });
+  
+    return response.json(data);
   }
   
   async delete(request, response) {

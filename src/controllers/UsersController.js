@@ -50,10 +50,10 @@ class UsersController {
       phone = ?,
       birthday = ?,
       hometown = ?,
-      updated_at = ?
+      updated_at = DATETIME('now')
 
       WHERE id = ?`,
-      [user.name, user.email, user.phone, user.birthday, user.hometown, new Date(), id]
+      [user.name, user.email, user.phone, user.birthday, user.hometown, id]
     );
 
     return response.status(200).json();

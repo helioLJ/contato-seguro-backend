@@ -1,62 +1,106 @@
-const AppError = require("../utils/AppError");
-
-const sqliteConnection = require("../database/sqlite");
+const knex = require("../database/knex");
 
 class UsersController {
   async create(request, response) {
     const { name, email, phone, birthday, hometown } = request.body;
 
-    const database = await sqliteConnection();
-    const checkUsersExists = await database.get("SELECT * FROM users WHERE EMAIL = (?)", [email]);
-
-    if (checkUsersExists) {
-      throw new AppError("Este e-mail já está em uso.");
+    // Verifica se todos os campos foram preenchidos
+    if (!name || !email || !phone || !birthday || !hometown) {
+      return response
+        .status(400)
+        .json({ error: "Preencha todos os campos obrigatórios." });
     }
 
-    await database.run("INSERT INTO users (name, email, phone, birthday, hometown) VALUES (?, ?, ?, ?, ?)",
-      [name, email, phone, birthday, hometown]
-    );
+    // Verifica se o email já está cadastrado
+    const userExists = await knex("users").where({ email }).first();
+    if (userExists) {
+      return response.status(400).json({ error: "Email já cadastrado." });
+    }
 
-    return response.status(201).json();
+    // Insere o novo usuário no banco de dados
+    try {
+      const [userId] = await knex("users").insert({
+        name,
+        email,
+        phone,
+        birthday,
+        hometown,
+      });
+
+      return response.status(201).json({ id: userId, name, email });
+    } catch (error) {
+      return response.status(500).json({ error: "Erro ao criar usuário." });
+    }
   }
 
   async update(request, response) {
     const { name, email, phone, birthday, hometown } = request.body;
     const { id } = request.params;
 
-    const database = await sqliteConnection();
-    const user = await database.get("SELECT * FROM users WHERE id = (?)", [id]);
+    // Verifica se todos os campos estão preenchidos
+    if (!name || !email || !phone || !birthday || !hometown) {
+      return response.status(400).json({ error: "All fields are required." });
+    }
+
+    // Verifica se o usuário existe
+    const user = await knex("users").where({ id }).first();
+    if (!user) {
+      return response.status(404).json({ error: "User not found." });
+    }
+
+    // Verifica se o email já está em uso por outro usuário
+    if (email !== user.email) {
+      const emailExists = await knex('users').where('email', email).first();
+
+      if (emailExists) {
+        return response.status(400).json({ error: 'Email already in use' });
+      }
+    }
+
+    // Atualiza o usuário no banco de dados
+    await knex("users").where({ id }).update({
+      name,
+      email,
+      phone,
+      birthday,
+      hometown
+    });
+
+    return response.json({ message: "User updated successfully." });
+  }
+
+  async index(request, response) {
+    const { id } = request.params;
+
+    const user = await knex("users").select("*").where("id", id).first();
 
     if (!user) {
-      throw new AppError("Usuário não encontrado");
+      return response.status(404).json({ error: "User not found" });
     }
 
-    const userWithUpdatedEmail = await database.get("SELECT * FROM users WHERE email = (?)", [email]);
+    return response.json(user);
+  }
 
-    if (userWithUpdatedEmail && userWithUpdatedEmail.id !== user.id) {
-      throw new AppError("Este e-mail já está em uso.");
+  async show(request, response) {
+    try {
+      const users = await knex.select("*").from("users");
+      return response.json(users);
+    } catch (error) {
+      console.error(error);
+      return response.status(500).json({ error: "Error listing users" });
+    }
+  }
+
+  async delete(request, response) {
+    const { id } = request.params;
+
+    const deleted = await knex("users").where("id", id).delete();
+
+    if (deleted === 0) {
+      return response.status(404).json({ error: "User not found" });
     }
 
-    user.name = name ?? user.name;
-    user.email = email ?? user.email;
-    user.phone = phone ?? user.phone;
-    user.birthday = birthday ?? user.birthday;
-    user.hometown = hometown ?? user.hometown;
-
-    await database.run(`
-      UPDATE users SET
-      name = ?,
-      email = ?,
-      phone = ?,
-      birthday = ?,
-      hometown = ?,
-      updated_at = DATETIME('now')
-
-      WHERE id = ?`,
-      [user.name, user.email, user.phone, user.birthday, user.hometown, id]
-    );
-
-    return response.status(200).json();
+    return response.sendStatus(204);
   }
 }
 

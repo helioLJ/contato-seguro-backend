@@ -1,15 +1,19 @@
 {
-  "name": "backend",
+  "name": "contato-seguro-teste-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "API para o teste técnico da Contato Seguro.",
   "main": "index.js",
   "scripts": {
-    "start": "node ./src/server.js"
+    "start": "node ./src/server.js",
+    "dev": "nodemoin ./src/server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Hélio Lúcio",
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
   }
 }

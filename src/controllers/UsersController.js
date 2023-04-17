@@ -37,11 +37,11 @@ class UsersController {
       throw new AppError("Este e-mail já está em uso.");
     }
 
-    user.name = name;
-    user.email = email;
-    user.phone = phone;
-    user.birthday = birthday;
-    user.hometown = hometown;
+    user.name = name ?? user.name;
+    user.email = email ?? user.email;
+    user.phone = phone ?? user.phone;
+    user.birthday = birthday ?? user.birthday;
+    user.hometown = hometown ?? user.hometown;
 
     await database.run(`
       UPDATE users SET

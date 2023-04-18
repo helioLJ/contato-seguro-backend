@@ -1,36 +1,18 @@
 const knex = require("../database/knex");
+const AppError = require("../utils/AppError");
+const UserRepository = require("../repositories/UserRepository");
+const UserCreateService = require("../services/UserCreateService");
+
+const userRepository = new UserRepository()
 
 class UsersController {
   async create(request, response) {
     const { name, email, phone, birthday, hometown } = request.body;
 
-    // Verifica se todos os campos foram preenchidos
-    if (!name || !email || !phone || !birthday || !hometown) {
-      return response
-        .status(400)
-        .json({ error: "Preencha todos os campos obrigatórios." });
-    }
+    const userCreateService = new UserCreateService(userRepository)
+    await userCreateService.execute({ name, email, phone, birthday, hometown })
 
-    // Verifica se o email já está cadastrado
-    const userExists = await knex("users").where({ email }).first();
-    if (userExists) {
-      return response.status(400).json({ error: "Email já cadastrado." });
-    }
-
-    // Insere o novo usuário no banco de dados
-    try {
-      const [userId] = await knex("users").insert({
-        name,
-        email,
-        phone,
-        birthday,
-        hometown,
-      });
-
-      return response.status(201).json({ id: userId, name, email });
-    } catch (error) {
-      return response.status(500).json({ error: "Erro ao criar usuário." });
-    }
+    return response.status(201).json({ message: "Usuário criado com sucesso!" });
   }
 
   async update(request, response) {
@@ -39,13 +21,13 @@ class UsersController {
 
     // Verifica se todos os campos estão preenchidos
     if (!name || !email || !phone || !birthday || !hometown) {
-      return response.status(400).json({ error: "All fields are required." });
+      throw new AppError('Preencha todos os campos obrigatórios.', 400)
     }
 
     // Verifica se o usuário existe
     const user = await knex("users").where({ id }).first();
     if (!user) {
-      return response.status(404).json({ error: "User not found." });
+      throw new AppError('Usuário não encontrado.', 404)
     }
 
     // Verifica se o email já está em uso por outro usuário
@@ -53,20 +35,23 @@ class UsersController {
       const emailExists = await knex('users').where('email', email).first();
 
       if (emailExists) {
-        return response.status(400).json({ error: 'Email already in use' });
+        throw new AppError('Email já cadastrado.', 400)
       }
     }
 
     // Atualiza o usuário no banco de dados
+    const now = new Date();
+    const formattedNow = now.toISOString().replace('T', ' ').substr(0, 19);
     await knex("users").where({ id }).update({
       name,
       email,
       phone,
       birthday,
-      hometown
+      hometown,
+      updated_at: formattedNow
     });
 
-    return response.json({ message: "User updated successfully." });
+    return response.json({ message: "Usuário editado com sucesso!" });
   }
 
   async index(request, response) {
@@ -95,7 +80,9 @@ class UsersController {
         .where('hometown', 'like', `%${hometown}%`)
         .select('*');
     } else {
-      users = await knex("users").select("*");
+      users = await knex('users')
+        .orderBy('updated_at', 'desc')
+        .select('*');
     }
 
     return response.json(users);
@@ -107,10 +94,10 @@ class UsersController {
     const deleted = await knex("users").where("id", id).delete();
 
     if (deleted === 0) {
-      return response.status(404).json({ error: "User not found" });
+      throw new AppError("Usuário não encontrado.", 404);
     }
 
-    return response.sendStatus(204);
+    return response.sendStatus(204).json({ message: "Usuário deletado com sucesso." });
   }
 }
 

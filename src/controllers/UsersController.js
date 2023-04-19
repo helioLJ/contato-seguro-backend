@@ -1,7 +1,9 @@
 const knex = require("../database/knex");
 const AppError = require("../utils/AppError");
+
 const UserRepository = require("../repositories/UserRepository");
 const UserCreateService = require("../services/UserCreateService");
+const UserUpdateService = require("../services/UserUpdateService");
 
 const userRepository = new UserRepository()
 
@@ -19,37 +21,8 @@ class UsersController {
     const { name, email, phone, birthday, hometown } = request.body;
     const { id } = request.params;
 
-    // Verifica se todos os campos estão preenchidos
-    if (!name || !email || !phone || !birthday || !hometown) {
-      throw new AppError('Preencha todos os campos obrigatórios.', 400)
-    }
-
-    // Verifica se o usuário existe
-    const user = await knex("users").where({ id }).first();
-    if (!user) {
-      throw new AppError('Usuário não encontrado.', 404)
-    }
-
-    // Verifica se o email já está em uso por outro usuário
-    if (email !== user.email) {
-      const emailExists = await knex('users').where('email', email).first();
-
-      if (emailExists) {
-        throw new AppError('Email já cadastrado.', 400)
-      }
-    }
-
-    // Atualiza o usuário no banco de dados
-    const now = new Date();
-    const formattedNow = now.toISOString().replace('T', ' ').substr(0, 19);
-    await knex("users").where({ id }).update({
-      name,
-      email,
-      phone,
-      birthday,
-      hometown,
-      updated_at: formattedNow
-    });
+    const userUpdateService = new UserUpdateService(userRepository)
+    await userUpdateService.execute({ id, name, email, phone, birthday, hometown })
 
     return response.json({ message: "Usuário editado com sucesso!" });
   }

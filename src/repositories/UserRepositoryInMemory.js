@@ -5,19 +5,27 @@ class UserRepositoryInMemory {
     return this.users.find(user => user.email === email)
   }
 
-  async create(name, email, phone, birthday, hometown ) {
+  async create(name, email, phone, birthday, hometown, id ) {
     const user = {
-      id: Math.floor(Math.random() * 1000) + 1,
       name,
       email,
       phone,
       birthday,
-      hometown
+      hometown,
+      id
     }
 
     this.users.push(user)
 
     return user
+  }
+
+  async verifyUser(id) {
+    let userObj
+    this.users.find(user => {
+      user.id === id ? userObj = user : false
+    })
+    return userObj
   }
 }
 

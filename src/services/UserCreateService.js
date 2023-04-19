@@ -5,8 +5,8 @@ class UserCreateService {
     this.userRepository = userRepository
   }
 
-  async execute({ name, email, phone, birthday, hometown }) {
-    if (!name || !email || !phone || !birthday || !hometown) {
+  async execute({ name, email, phone, birthday, hometown, id }) {
+    if (!name || !email) {
       throw new AppError('Preencha todos os campos obrigatórios.', 400)
     }
 
@@ -15,7 +15,7 @@ class UserCreateService {
     }
 
     try {
-      const userCreated = await this.userRepository.create(name, email, phone, birthday, hometown)
+      const userCreated = await this.userRepository.create(name, email, phone, birthday, hometown, id)
       return userCreated
     } catch {
       throw new AppError('Erro ao criar usuário.', 500)

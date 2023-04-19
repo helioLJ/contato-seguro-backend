@@ -17,7 +17,8 @@ describe("UserCreateService", () => {
       email: "user@test.com",
       phone: "99999999999",
       birthday: "00/00/2000",
-      hometown: "Test City"
+      hometown: "Test City",
+      id: 1
     }
 
     const userCreated = await userCreateService.execute(user)
@@ -31,7 +32,8 @@ describe("UserCreateService", () => {
       email: "user@test.com",
       phone: "99999999999",
       birthday: "00/00/2000",
-      hometown: "Test City"
+      hometown: "Test City",
+      id: 1
     }
 
     const user2 = {
@@ -39,7 +41,8 @@ describe("UserCreateService", () => {
       email: "user@test.com",
       phone: "99999999999",
       birthday: "00/00/2000",
-      hometown: "Test City"
+      hometown: "Test City",
+      id: 2
     }
 
     await userCreateService.execute(user1)

@@ -3,6 +3,8 @@
 
 API Backend usando Node.js para o teste técnico da Contato Seguro
 
+- [BaseURL](https://contato-seguro-api.onrender.com)
+
 ## Sumário
 - [Tecnologias Utilizadas](#tecnologias-utilizadas)
 - [Funcionalidades](#funcionalidades)
